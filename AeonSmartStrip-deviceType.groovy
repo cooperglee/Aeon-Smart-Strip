@@ -66,8 +66,9 @@ metadata {
 	}
 
 	preferences {
-		input "switchAll", "bool", title:"Use All On / All Off ? (Includes/Excludes from Z-Wave All On/Off)"
-		input "outletWatts", "number", title:"What wattage threshold for Outlets to turn On/Off (switch5/switch6)?", defaultValue:1
+		input name:"updateFrequency", type:"number", title:"Have the strip send updates every how many seconds?", defaultValue:15
+		input name:"switchAll",  type:"bool", title:"Use All On / All Off ? (Includes/Excludes from Z-Wave All On/Off)"
+		input name:"outletWatts",  type:"number", title:"What wattage threshold for Outlets to turn On/Off (switch5/switch6)?", defaultValue:1
 	}
 
 
@@ -262,7 +263,8 @@ def zwaveEvent(int endPoint, physicalgraph.zwave.commands.meterv1.MeterReport cm
     	map = [  name: "power" + endPoint, value: Math.round(cmd.scaledMeterValue), unit: "W" ]
         if(endPoint < 3) { 
         	log.debug "Outlet $endPoint Power Info - $cmd.scaledMeterValue"
-        	if(cmd.scaledMeterValue > 0) {
+        	def outletWatts = device.currentValue("outletWatts") as BigDecimal ?: 1
+    		if(cmd.scaledMeterValue > outletWatts) {
         		sendEvent( name: "outlet" + endPoint, value: "on" )
         		sendEvent( name: "switch" + (endPoint+4), value: "on" )
 
@@ -322,21 +324,21 @@ def on4() { swOn(4) }; def off4() { swOff(4) }
 def on1() {
     	delayBetween([
 		//zwave.switchAllV1.switchAllSet(mode:0).format(),
-        zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:1, destinationEndPoint:1, commandClass:37, command:1, parameter:[255]).format(),
-		zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:1, destinationEndPoint:1, commandClass:37, command:2).format(),
-		zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:1, destinationEndPoint:2, commandClass:37, command:2).format(),
-        zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:1, destinationEndPoint:3, commandClass:50, command:1, parameter:[0]).format(),
-		zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:1, destinationEndPoint:3, commandClass:50, command:1, parameter:[16]).format(),
+        zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:1, commandClass:37, command:1, parameter:[255]).format(),
+		zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:1, commandClass:37, command:2).format(),
+		zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:2, commandClass:37, command:2).format(),
+        zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:3, commandClass:50, command:1, parameter:[0]).format(),
+		zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:3, commandClass:50, command:1, parameter:[16]).format(),
 	])
 }
 
 def off1() {
     	delayBetween([
-		zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:1, destinationEndPoint:1, commandClass:37, command:1, parameter:[0]).format(),
-		zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:1, destinationEndPoint:1, commandClass:37, command:2).format(),
-		zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:1, destinationEndPoint:2, commandClass:37, command:2).format(),
-        zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:1, destinationEndPoint:3, commandClass:50, command:1, parameter:[0]).format(),
-		zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:1, destinationEndPoint:3, commandClass:50, command:1, parameter:[16]).format(),
+		zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:1, commandClass:37, command:1, parameter:[0]).format(),
+		zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:1, commandClass:37, command:2).format(),
+		zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:2, commandClass:37, command:2).format(),
+        zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:3, commandClass:50, command:1, parameter:[0]).format(),
+		zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:3, commandClass:50, command:1, parameter:[16]).format(),
 	])
 }
 
@@ -344,21 +346,21 @@ def off1() {
 
 def swOn(port) {
 	delayBetween([
-        zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:0, destinationEndPoint:port, commandClass:37, command:1, parameter:[255]).format(),
-		zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:0, destinationEndPoint:port, commandClass:37, command:2, parameter:[0]).format(),
+        zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:port, commandClass:37, command:1, parameter:[255]).format(),
+		zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:port, commandClass:37, command:2, parameter:[0]).format(),
         "delay 1200",
-        zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:0, destinationEndPoint:port+2, commandClass:50, command:1, parameter:[16]).format(),
-		zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:0, destinationEndPoint:port+2, commandClass:50, command:1, parameter:[0]).format(),
+        zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:port+2, commandClass:50, command:1, parameter:[16]).format(),
+		zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:port+2, commandClass:50, command:1, parameter:[0]).format(),
 	])
 }
 
 def swOff(port) {
 	delayBetween([
-        zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:0, destinationEndPoint:port, commandClass:37, command:1, parameter:[0]).format(),
-		zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:0, destinationEndPoint:port, commandClass:37, command:2, parameter:[0]).format(),
+        zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:port, commandClass:37, command:1, parameter:[0]).format(),
+		zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:port, commandClass:37, command:2, parameter:[0]).format(),
         "delay 1200",
-        zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:0, destinationEndPoint:port+2, commandClass:50, command:1, parameter:[16]).format(),
-		zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:0, destinationEndPoint:port+2, commandClass:50, command:1, parameter:[0]).format(),
+        zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:port+2, commandClass:50, command:1, parameter:[16]).format(),
+		zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:port+2, commandClass:50, command:1, parameter:[0]).format(),
 	])
 }
 
@@ -408,18 +410,24 @@ def configure() {
 	log.debug "Executing 'configure'"
     def switchAllmode
     if(switchAll=="true") { switchAllmode = 255 } else { switchAllmode=0 }
-    log.debug "SW All - $switchAllmode $switchAll"
-    delayBetween([
-    	zwave.configurationV1.configurationSet(parameterNumber:101, size:4, configurationValue: [ 0, 0, 127, 127 ]).format(),
-        zwave.configurationV1.configurationSet(parameterNumber:111, size:4, scaledConfigurationValue: 15).format(),
-        zwave.configurationV1.configurationSet(parameterNumber:112, size:4, scaledConfigurationValue: 15).format(),
-        zwave.configurationV1.configurationSet(parameterNumber:113, size:4, scaledConfigurationValue: 15).format(),
-        zwave.configurationV1.configurationSet(parameterNumber:3, configurationValue: [3]).format(),
-        zwave.configurationV1.configurationSet(parameterNumber:4, configurationValue: [0]).format(),
-        zwave.switchAllV1.switchAllSet(mode:switchAllmode).format(),
-        zwave.configurationV1.configurationGet().format(),
+    def updateFrequency = device.currentValue("updateFrequency") as BigDecimal
+    if(!updateFrequency) updateFrequency = 15
+    log.debug "Configuring $device.label - SW All: $switchAllmode ($switchAll) Update Frequency: $updateFrequency"
+    def cmds = []
+    	cmds << zwave.configurationV1.configurationSet(parameterNumber:101, size:4, configurationValue: [ 0, 0, 127, 127 ]).format()
+        cmds << zwave.configurationV1.configurationSet(parameterNumber:111, size:4, scaledConfigurationValue: updateFrequency).format()
+        cmds << zwave.configurationV1.configurationSet(parameterNumber:112, size:4, scaledConfigurationValue: updateFrequency).format()
+        cmds << zwave.configurationV1.configurationSet(parameterNumber:113, size:4, scaledConfigurationValue: updateFrequency).format()
+        cmds << zwave.configurationV1.configurationSet(parameterNumber:3, configurationValue: [3]).format()
+        cmds << zwave.configurationV1.configurationSet(parameterNumber:4, configurationValue: [0]).format()
+        cmds << zwave.switchAllV1.switchAllSet(mode:switchAllmode).format()
+        cmds << zwave.configurationV1.configurationGet().format()
+    for ( i in 1..6 ) {
+    	cmds << zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:i, commandClass:50, command:1, parameter:[0]).format()
+    	cmds << zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:i, commandClass:50, command:1, parameter:[16]).format()
+		}
+	delayBetween(cmds,150)
 
-    ])
 }
 
 
@@ -430,7 +438,7 @@ def reset() {
     cmds << zwave.meterV2.meterReset().format()
     cmds << zwave.meterV2.meterGet(scale:0).format()
     for ( i in 1..6 ) 
-    	cmds << zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:1, destinationEndPoint:i, commandClass:50, command:1, parameter:[0]).format()
+    	cmds << zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:i, commandClass:50, command:1, parameter:[0]).format()
 
 	delayBetween(cmds)
 }
@@ -455,13 +463,14 @@ def on7() {
     log.debug "All On"
     def cmds = []
         for ( i in 1..4 ) {
-            cmds << zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:0, destinationEndPoint:i, commandClass:37, command:1, parameter:[255]).format()
+            cmds << zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:i, commandClass:37, command:1, parameter:[255]).format()
             cmds << "delay 200"
-            cmds << zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:0, destinationEndPoint:i+2, commandClass:50, command:1, parameter:[0]).format()
-            cmds << zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:0, destinationEndPoint:i+2, commandClass:50, command:1, parameter:[16]).format()
-            cmds << zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:0, destinationEndPoint:i, commandClass:37, command:2, parameter:[0]).format()
+            cmds << zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:i+2, commandClass:50, command:1, parameter:[0]).format()
+            cmds << zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:i+2, commandClass:50, command:1, parameter:[16]).format()
+            cmds << zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:i, commandClass:37, command:2, parameter:[0]).format()
         }
-	delayBetween(cmds,100)
+	delayBetween(cmds,300)
+    
 }
 
 
@@ -469,12 +478,12 @@ def off7() {
         log.debug "All Off"
     def cmds = []
         for ( i in 1..4 ) {
-            cmds << zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:0, destinationEndPoint:i, commandClass:37, command:1, parameter:[0]).format()
+            cmds << zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:i, commandClass:37, command:1, parameter:[0]).format()
             cmds << "delay 200"
-            cmds << zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:0, destinationEndPoint:i+2, commandClass:50, command:1, parameter:[0]).format()
-            cmds << zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:0, destinationEndPoint:i+2, commandClass:50, command:1, parameter:[16]).format()
-            cmds << zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:0, destinationEndPoint:i, commandClass:37, command:2, parameter:[0]).format()
+            cmds << zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:i+2, commandClass:50, command:1, parameter:[0]).format()
+            cmds << zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:i+2, commandClass:50, command:1, parameter:[16]).format()
+            cmds << zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:i, commandClass:37, command:2, parameter:[0]).format()
         }
-	delayBetween(cmds,100)
+	delayBetween(cmds,300)
 }
 
