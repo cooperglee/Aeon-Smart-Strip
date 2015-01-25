@@ -114,8 +114,8 @@ metadata {
                         state "off", label: "Outlet2 (sw6)", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
                 }
         standardTile("switch7", "device.switch7",canChangeIcon: false) {
-                        state "on", label: "All On (sw7)", action: "on7", icon: "st.switches.switch.on", backgroundColor: "#79b821"
-                        state "off", label: "All Off (sw7)", action: "off7", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
+                        state "on", label: "All On (sw7)", action: "off7", icon: "st.switches.switch.on", backgroundColor: "#79b821"
+                        state "off", label: "All Off (sw7)", action: "on7", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
                 }
 
 
@@ -470,7 +470,7 @@ def on7() {
             cmds << zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:i, commandClass:37, command:2, parameter:[0]).format()
         }
 	delayBetween(cmds,300)
-    
+    sendEvent(name:"switch7", value:"on")
 }
 
 
@@ -485,5 +485,6 @@ def off7() {
             cmds << zwave.multiChannelV3.multiChannelCmdEncap(sourceEndPoint:3, destinationEndPoint:i, commandClass:37, command:2, parameter:[0]).format()
         }
 	delayBetween(cmds,300)
+    sendEvent(name:"switch7", value:"off")
 }
 
