@@ -55,6 +55,8 @@ metadata {
 
 		command "on7"
 		command "off7"
+		
+		command "configure"
 
 
 		fingerprint deviceId: "0x0001", inClusters: "0x25 0x32 0x27 0x70 0x85 0x72 0x86 0x60 0xEF 0x82"
@@ -127,7 +129,7 @@ metadata {
         				state "default", label:"reset kWh", action:"reset"
                 }
         standardTile("configure", "device.switch", inactiveLabel: false, decoration: "flat") {
-        				state "default", label:"", action:"configuration.configure", icon:"st.secondary.configure"
+        				state "default", label:"", action:"configure", icon:"st.secondary.configure"
                 }
 
         valueTile("power", "device.power", decoration: "flat") {
